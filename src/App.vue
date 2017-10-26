@@ -10,7 +10,14 @@
             <div class="col-md-12" v-if="alerts.length != 0">
                 <div class="alert alert-dismissible" role="alert" v-for="alert in alerts" :class="'alert-' + alert.type">
                     {{ alert.message }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <hr v-if="confirmElement.show">
+                    <button class="btn btn-default" v-if="confirmElement.show" @click.prevent="deleteTicket()">
+                        Supprimer
+                    </button>
+                    <button type="button" class="btn btn-default" data-dismiss="alert" aria-label="Close" v-if="confirmElement.show" @click.prevent="cancel()">
+                        Annuler
+                    </button>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close" v-if="!confirmElement.show">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -62,7 +69,7 @@
             <div class="col-md-8" v-if="openTicket != null">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <span class="text-primary">Ticket #{{ openTicket.id }} : {{ openTicket.name }}</span>
+                        Ticket #{{ openTicket.id }} : {{ openTicket.name }}
                         <div class="pull-right">
                             <button class="btn btn-xs" @click.prevent="openTicket = null">Fermer</button>
                         </div>
@@ -77,6 +84,9 @@
                             <hr>
                             <button class="btn btn-default" @click.prevent="openTicket.state = ''; newTicket = openTicket">
                                 Editer le ticket
+                            </button>
+                            <button class="btn btn-default" @click.prevent="addAlert('warning', 'Confirmez-vous la suppression du ticket #' + openTicket.id + ' ?', 7500); confirm(openTicket.id)">
+                                Supprimer le ticket
                             </button>
                         </div>
                     </div>
@@ -132,8 +142,19 @@
                 tickets: [],
                 openTicket: null,
                 alerts: [],
+                confirmElement: {
+                    id: null,
+                    show: false
+                },
                 query: '',
             }
+        },
+        mounted () {
+            this.$http.get('http://localhost:3000').then(response => {
+                this.tickets = response.body
+            }, response => {
+                this.addAlert('warning', 'Le serveur de sauvegarde est indisponible. Les nouveaux tickets ne seronts pas sauvegardés.', 7500)
+            });
         },
         methods: {
             addTicket () {
@@ -142,7 +163,15 @@
                         this.convertMarkdown()
                         this.tickets.push(this.newTicket)
                         this.openTicket = this.newTicket
-                        this.addAlert('info', 'Nouveau ticket mis en place avec succès.', 7500)
+                        this.$http.post('http://localhost:3000/server/add', {
+                            id: this.newTicket.id,
+                            name: this.newTicket.name,
+                            content: this.newTicket.content
+                        }).then(response => {
+                            this.addAlert('success', 'Nouveau ticket mis en place avec succès.', 7500)
+                        }, response => {
+                            this.addAlert('danger', 'Une erreur est survenue > ERR:SERVER', 7500)
+                        });
                         this.resetFields(false)
                     } else {
                         this.addAlert('warning', 'Un ticket est déjà disponible pour cet idenfifiant : (#' + this.newTicket.id + ' > "' + this.newTicket.name + '")', 5000)
@@ -161,6 +190,22 @@
                     return ticket
                 })
                 this.resetFields(true)
+            },
+            deleteTicket () {
+                let ticketID = this.confirmElement.id
+                this.tickets = this.tickets.filter(function (ticket) {
+                    return ticket.id != ticketID
+                })
+                this.openTicket = null
+                this.cancel()
+                this.alerts.shift()
+                this.$http.post('http://localhost:3000/server/delete', {
+                    id: ticketID
+                }).then(response => {
+                    this.addAlert('success', 'Suppression du ticket effectuée avec succès', 7500)
+                }, response => {
+                    this.addAlert('danger', 'Une erreur est survenue > ERR:SERVER', 7500)
+                });
             },
             checkID (ticketID) {
                 return this.tickets.filter(function (ticket) {
@@ -186,6 +231,14 @@
                 if (this.newTicket.markdown) {
                     this.newTicket.content = marked(this.newTicket.content)
                 }
+            },
+            confirm (ticketID) {
+                this.confirmElement.id = ticketID
+                this.confirmElement.show = true
+            },
+            cancel () {
+                this.confirmElement.id = null
+                this.confirmElement.show = false
             },
             addAlert(type, message, delay) {
                 this.alerts.push({
