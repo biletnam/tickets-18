@@ -1,0 +1,73 @@
+@import url("http://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700");
+
+body {
+    font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background-color: #F1F3F6;
+}
+
+a {
+    color: #34495e;
+    text-decoration: none;
+}
+
+hr {
+    border-top: 1px solid #cbcbcb;
+}
+
+.panel-heading {
+    background-color: #F7F9FA;
+}
+
+.btn {
+    border-radius: 3px;
+}
+
+.btn-default {
+    background-color: #34495e;
+    border-color: #34495e;
+    color: #FFF;
+}
+
+.btn-default:hover, .btn-default:focus, .btn-default:active, .btn-default.active, .open .dropdown-toggle.btn-default {
+    background-color: #3f5872;
+    border-color: #3f5872;
+    color: #FFF;
+}
+
+.navbar-inverse {
+    background-color: #34495e;
+    border-color: #17222e;
+    color: #FFF;
+}
+
+.navbar-inverse .navbar-brand {
+    color: #FFF;
+}
+
+.navbar-inverse .navbar-toggle {
+    border-color: #213146;
+}
+
+.navbar-inverse .navbar-toggle:focus, .navbar-inverse .navbar-toggle:hover {
+    background-color: #1e2a3c;
+}
+
+.navbar-inverse .navbar-nav > .active > a, .navbar-inverse .navbar-nav > .active > a:focus, .navbar-inverse .navbar-nav > .active > a:hover {
+    background-color: #1e2a3c;
+}
+
+.panel-heading {
+    border-bottom: none;
+    font-weight: 700;
+    color: #34495e;
+}
+
+.panel-body {
+    border-top: 2px solid #34495e;
+}
+
+.alert-warning {
+    border-color: #ffb606;
+    background-color: #FFF;
+    color: #34495e;
+}

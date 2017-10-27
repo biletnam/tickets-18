@@ -51,7 +51,18 @@ app.post('/server/add', function (req, res) {
  * Delete a ticket
  */
 app.post('/server/delete', function (req, res) {
-
+    if (req.body.id) {
+        let data = require(__dirname + '/tickets.json')
+        data = data.filter(function (ticket) {
+            return ticket.id != req.body.id
+        })
+        data = JSON.stringify(data)
+        fs.writeFile(__dirname + '/tickets.json', data)
+        res.json(data)
+    } else {
+        res.statusCode = 500
+        res.json(false)
+    }
 })
 
 /**

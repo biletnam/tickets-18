@@ -147,11 +147,13 @@
                     show: false
                 },
                 query: '',
+                serverAvailable: false
             }
         },
         mounted () {
             this.$http.get('http://localhost:3000').then(response => {
                 this.tickets = response.body
+                this.serverAvailable = true
             }, response => {
                 this.addAlert('warning', 'Le serveur de sauvegarde est indisponible. Les nouveaux tickets ne seronts pas sauvegardés.', 7500)
             });
@@ -163,15 +165,19 @@
                         this.convertMarkdown()
                         this.tickets.push(this.newTicket)
                         this.openTicket = this.newTicket
-                        this.$http.post('http://localhost:3000/server/add', {
-                            id: this.newTicket.id,
-                            name: this.newTicket.name,
-                            content: this.newTicket.content
-                        }).then(response => {
-                            this.addAlert('success', 'Nouveau ticket mis en place avec succès.', 7500)
-                        }, response => {
-                            this.addAlert('danger', 'Une erreur est survenue > ERR:SERVER', 7500)
-                        });
+                        if (this.serverAvailable) {
+                            this.$http.post('http://localhost:3000/server/add', {
+                                id: this.newTicket.id,
+                                name: this.newTicket.name,
+                                content: this.newTicket.content
+                            }).then(response => {
+                                this.addAlert('success', 'Nouveau ticket mis en place avec succès.', 7500)
+                            }, response => {
+                                this.addAlert('danger', 'Une erreur est survenue > ERR:SERVER', 7500)
+                            });
+                        } else {
+                            this.addAlert('warning', 'Le serveur de sauvegarde est indisponible. Les données n\'ont pas été sauvegardées.', 7500)
+                        }
                         this.resetFields(false)
                     } else {
                         this.addAlert('warning', 'Un ticket est déjà disponible pour cet idenfifiant : (#' + this.newTicket.id + ' > "' + this.newTicket.name + '")', 5000)
@@ -199,13 +205,17 @@
                 this.openTicket = null
                 this.cancel()
                 this.alerts.shift()
-                this.$http.post('http://localhost:3000/server/delete', {
-                    id: ticketID
-                }).then(response => {
-                    this.addAlert('success', 'Suppression du ticket effectuée avec succès', 7500)
-                }, response => {
-                    this.addAlert('danger', 'Une erreur est survenue > ERR:SERVER', 7500)
-                });
+                if (this.serverAvailable) {
+                    this.$http.post('http://localhost:3000/server/delete', {
+                        id: ticketID
+                    }).then(response => {
+                        this.addAlert('success', 'Suppression du ticket effectuée avec succès', 7500)
+                    }, response => {
+                        this.addAlert('danger', 'Une erreur est survenue > ERR:SERVER', 7500)
+                    });
+                } else {
+                    this.addAlert('warning', 'Le serveur de sauvegarde est indisponible. Les données n\'ont pas été sauvegardées.', 7500)
+                }
             },
             checkID (ticketID) {
                 return this.tickets.filter(function (ticket) {
